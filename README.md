@@ -6,6 +6,8 @@
 
 **Status:** v0.1.0, an early release, public domain ([CC0](LICENSE)), tested end to end on one county general-election ballot. **Requirements:** Claude Code (recommended) or the Claude app, and Python 3.8+ (preinstalled on macOS). Optional: media tools for forum transcripts (macOS on Apple silicon is best supported).
 
+**[→ How to install](#how-to-install)** (about a minute; Claude Code or the Claude app)
+
 > **Personal guide, not an official ballot.** The skill never answers voting-logistics questions from memory. Confirm dates, deadlines and drop sites with your county election office.
 
 ---
@@ -13,7 +15,7 @@
 ## Contents
 
 - [What you get](#what-you-get)
-- [Install](#install)
+- [How to install](#how-to-install)
 - [Use](#use)
 - [How it works: the methodology](#how-it-works-the-methodology)
 - [Why these safeguards: the research](#why-these-safeguards-the-research)
@@ -38,27 +40,59 @@ A single HTML page (or a claude.ai Artifact) with:
 
 ---
 
-## Install
+## How to install
 
-### Claude Code (recommended)
+Little Ballot Helper is not in an official plugin directory yet. Install it yourself with one of these options. Each takes about a minute.
 
-1. Clone this repository into your skills folder:
+### Option A: Claude Code on macOS or Linux (recommended)
+
+1. Open a terminal.
+2. Run:
    ```bash
    git clone https://github.com/arcataroger/little-ballot-helper.git ~/.claude/skills/little-ballot-helper
    ```
-2. Start a new Claude Code session.
-3. Say something like "help me with my ballot," or type `/little-ballot-helper`.
+3. Start a new Claude Code session.
+4. Type `/little-ballot-helper`, or just say "help me with my ballot."
 
-### Optional media tools (macOS on Apple silicon)
+### Option B: Claude Code on Windows
+
+1. Open PowerShell.
+2. Run:
+   ```powershell
+   git clone https://github.com/arcataroger/little-ballot-helper.git "$HOME\.claude\skills\little-ballot-helper"
+   ```
+3. Start a new Claude Code session, and type `/little-ballot-helper`.
+
+### Option C: Claude Code without git
+
+1. Download [`little-ballot-helper.zip`](https://github.com/arcataroger/little-ballot-helper/releases/latest/download/little-ballot-helper.zip) from the latest release.
+2. Unzip it. You get a folder named `little-ballot-helper`.
+3. Move that folder into your skills folder: `~/.claude/skills/` on macOS and Linux, or `%USERPROFILE%\.claude\skills\` on Windows. Create the `skills` folder if it doesn't exist.
+4. Start a new Claude Code session, and type `/little-ballot-helper`.
+
+### Option D: the Claude app (web or desktop)
+
+The app runs a reduced version: no forum transcripts, less campaign-finance data, and no independent fairness reviewer. The skill tells you what it can't do before it starts.
+
+1. Turn on code execution in the app's settings. Skills need it.
+2. Download [`little-ballot-helper.zip`](https://github.com/arcataroger/little-ballot-helper/releases/latest/download/little-ballot-helper.zip). Don't unzip it.
+3. Open the skills settings, choose to upload a skill, and select the ZIP. Anthropic moves this menu now and then; see [Use skills in Claude](https://support.claude.com/en/articles/12512180-use-skills-in-claude) for the current path.
+4. Start a new chat and say "help me with my ballot."
+
+### Update or uninstall
+
+- **Update (Options A and B):** run `git -C ~/.claude/skills/little-ballot-helper pull`.
+- **Update (Options C and D):** download the latest ZIP, and replace the folder or re-upload.
+- **Uninstall:** delete the `little-ballot-helper` folder from your skills folder, or remove the skill in the app's settings.
+
+### Optional: media tools for forum transcripts
 
 Forum transcripts and PDF reading need a few local tools. The skill checks for them and asks before installing anything.
 
-1. Run `~/.claude/skills/little-ballot-helper/scripts/setup_macos.sh` to see what is missing.
-2. Exit code 2 means some tools are missing, not that the script failed. Run it again with `--install` to add ffmpeg, yt-dlp, mlx-whisper, parakeet-mlx and the PDF tools through Homebrew and pipx.
+- **macOS:** run `~/.claude/skills/little-ballot-helper/scripts/setup_macos.sh` to see what's missing. Exit code 2 means "some tools are missing," not an error. Run it again with `--install` to add ffmpeg, yt-dlp, mlx-whisper, parakeet-mlx and the PDF tools through Homebrew and pipx.
+- **Windows or Linux:** install ffmpeg, yt-dlp, poppler and openai-whisper (`pipx install openai-whisper`); `scripts/transcribe` detects it automatically. faster-whisper and whisper.cpp also work if you transcribe by hand.
 
-On Windows or Linux, install ffmpeg, yt-dlp, poppler and openai-whisper (`pipx install openai-whisper`); `scripts/transcribe` detects it automatically. faster-whisper and whisper.cpp also work if you transcribe by hand. The skill adapts its steps to what it finds.
-
-### Optional API keys
+### Optional: API keys
 
 - `FEC_API_KEY`: a free key from [api.data.gov](https://api.data.gov/signup). Without one, federal campaign-finance lookups stall after a few calls.
 - A speech-to-text key (OpenAI, Groq, Deepgram or AssemblyAI): an opt-in fallback for transcribing forums on computers without a fast chip.

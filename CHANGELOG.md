@@ -1,9 +1,10 @@
 # Changelog
 
-## Unreleased
+## v0.1.1 (2026-10-19)
 
 - Renamed to Little Ballot Helper (`/little-ballot-helper`).
 - Dedicated to the public domain under CC0 1.0.
+- New "How to install" section: macOS, Linux, Windows, no-git and Claude app paths, with a release ZIP.
 
 ## v0.1.0 (2026-10-19)
 
