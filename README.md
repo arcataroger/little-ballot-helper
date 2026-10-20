@@ -1,6 +1,6 @@
-# Ballot Guide: an AI voter guide skill for Claude
+# Little Ballot Helper: a researched, values-based AI voter guide
 
-**Ballot Guide is a Claude skill that builds a researched, values-based voter guide for your exact US ballot.** Give it a photo of your sample ballot, and tell it your politics and priorities. It researches every candidate and ballot measure from official sources, endorsements, candidates' own words, forum transcripts and campaign-finance records. Then it ranks each option against *your* values, shows where trusted sources disagree, fact-checks itself, runs a blinded fairness test and builds a shareable web page with citations. It works for any state, county or city, any party or ideology, and both primaries and general elections.
+**Little Ballot Helper is a Claude skill that builds a researched, values-based voter guide for your exact US ballot.** Give it a photo of your sample ballot, and tell it your politics and priorities. It researches every candidate and ballot measure from official sources, endorsements, candidates' own words, forum transcripts and campaign-finance records. Then it ranks each option against *your* values, shows where trusted sources disagree, fact-checks itself, runs a blinded fairness test and builds a shareable web page with citations. It works for any state, county or city, any party or ideology, and both primaries and general elections.
 
 **Who it's for:** US voters of any party or ideology who want a sourced cheat sheet for their own ballot, and people who make voter guides for friends and family. **Not for:** official voter information, campaign mailers or paid persuasion.
 
@@ -46,16 +46,16 @@ This repository is private for now. Until it goes public, cloning needs access t
 
 1. Clone this repository into your skills folder:
    ```bash
-   git clone https://github.com/arcataroger/ballot-guide-claude-skill.git ~/.claude/skills/ballot-guide
+   git clone https://github.com/arcataroger/little-ballot-helper.git ~/.claude/skills/little-ballot-helper
    ```
 2. Start a new Claude Code session.
-3. Say something like "help me with my ballot," or type `/ballot-guide`.
+3. Say something like "help me with my ballot," or type `/little-ballot-helper`.
 
 ### Optional media tools (macOS on Apple silicon)
 
 Forum transcripts and PDF reading need a few local tools. The skill checks for them and asks before installing anything.
 
-1. Run `~/.claude/skills/ballot-guide/scripts/setup_macos.sh` to see what is missing.
+1. Run `~/.claude/skills/little-ballot-helper/scripts/setup_macos.sh` to see what is missing.
 2. Exit code 2 means some tools are missing, not that the script failed. Run it again with `--install` to add ffmpeg, yt-dlp, mlx-whisper, parakeet-mlx and the PDF tools through Homebrew and pipx.
 
 On Windows or Linux, install ffmpeg, yt-dlp, poppler and openai-whisper (`pipx install openai-whisper`); `scripts/transcribe` detects it automatically. faster-whisper and whisper.cpp also work if you transcribe by hand. The skill adapts its steps to what it finds.
@@ -223,7 +223,7 @@ Claude cannot transcribe audio itself: its API accepts text, images and PDFs, no
 ## Repository layout
 
 ```
-ballot-guide/
+little-ballot-helper/
 ├── SKILL.md                  # The workflow Claude follows (phases 0–8)
 ├── references/
 │   ├── environment.md        # Phase 0 probes, ratings, transcription ladder, warning text

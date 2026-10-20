@@ -1,10 +1,12 @@
 ---
-name: ballot-guide
+name: little-ballot-helper
 license: CC0-1.0
 description: Build a researched, values-based voter guide for one person's actual US ballot — every race, proposition and judge retention ranked against the user's own political leaning and priorities, with endorsements, candidates' own words, campaign money, forum transcripts, fact-checks and a shareable web page with citations. Use this whenever someone wants help deciding how to vote, asks "who should I vote for", says their ballot arrived, shares a photo of their ballot or sample ballot, wants a slate or cheat sheet for an upcoming election, wants to compare political candidates or ballot measures against their values, or wants to make a voter guide for friends and family — any US state, county or city, any party or ideology, primary or general.
 ---
 
-# Ballot guide
+# Little Ballot Helper
+
+A researched, values-based AI voter guide.
 
 Build a voter guide for one real US ballot, ranked by the user's values, with every claim sourced.
 
@@ -14,7 +16,7 @@ Chatbots fail at elections in documented ways: wrong facts, incomplete candidate
 
 ## Files
 
-Create one working folder per guide, named `ballot-guide-<county>-<election date>/` unless the user names one. Keep everything in it, including subagents' scratch files (in `work/`):
+Create one working folder per guide, named `ballot-<county>-<election date>/` unless the user names one. Keep everything in it, including subagents' scratch files (in `work/`):
 
 | File | Made in | Holds |
 |---|---|---|

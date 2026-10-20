@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Renamed to Little Ballot Helper (`/little-ballot-helper`).
 - Dedicated to the public domain under CC0 1.0.
 
 ## v0.1.0 (2026-10-19)

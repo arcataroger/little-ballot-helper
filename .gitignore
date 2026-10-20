@@ -1,7 +1,7 @@
 __pycache__/
 *.pyc
 .DS_Store
-ballot-guide-*/
+ballot-*-*/
 work/
 audio/
 *.vtt
