@@ -1,0 +1,182 @@
+#!/usr/bin/env python3
+"""transcribe: robust local transcription (best on Apple Silicon).
+
+Pipeline:
+  1. Convert input to 16 kHz mono WAV (ffmpeg).
+  2. Find long silences (ffmpeg silencedetect) and skip them, so Whisper never
+     sees dead air (dead air is what triggers its "Thank you." loops).
+  3. Transcribe each speech region with mlx_whisper (large-v3-turbo) with
+     --condition-on-previous-text False, which stops one bad window from
+     poisoning the next.
+  4. Flag suspect segments: repeated text, high compression ratio, or low
+     log-probability on audible speech.
+  5. Re-transcribe flagged spans with parakeet-mlx (a non-autoregressive model
+     that cannot loop) and splice the result in. Without parakeet-mlx, keep the
+     Whisper text and mark it [suspect].
+
+Needs ffmpeg, plus mlx-whisper (Apple Silicon) or openai-whisper (elsewhere).
+
+Outputs <name>.txt ("m:ss text" lines), <name>.json (segments with the model
+that produced each one), and a summary on stderr.
+
+Usage: transcribe AUDIO_OR_VIDEO [-o OUTDIR] [--model HF_REPO] [--no-fallback]
+"""
+import argparse, json, os, re, shutil, subprocess, sys, tempfile
+
+# mlx_whisper on Apple Silicon; openai-whisper ("whisper") anywhere else.
+WHISPER = shutil.which("mlx_whisper") or shutil.which("whisper")
+MLX = bool(WHISPER) and os.path.basename(WHISPER) == "mlx_whisper"
+PARAKEET = shutil.which("parakeet-mlx")  # optional fallback; skipped if absent
+SILENCE_DB, SILENCE_MIN_S = -50, 20     # skip silences of 20 s or more
+PAD_S = 1.0                             # keep 1 s of edge around each region
+MAX_COMPRESSION, MIN_LOGPROB = 2.4, -1.0
+REPEAT_RUN = 3                          # same text 3x in a row = a loop
+
+
+def run(cmd):
+    return subprocess.run(cmd, capture_output=True, text=True)
+
+
+def duration(path):
+    out = run(["ffprobe", "-v", "error", "-show_entries", "format=duration",
+               "-of", "csv=p=0", path]).stdout.strip()
+    return float(out)
+
+
+def speech_regions(wav, total):
+    log = run(["ffmpeg", "-nostdin", "-i", wav, "-af",
+               f"silencedetect=noise={SILENCE_DB}dB:d={SILENCE_MIN_S}",
+               "-f", "null", "-"]).stderr
+    starts = [float(x) for x in re.findall(r"silence_start: ([\d.]+)", log)]
+    ends = [float(x) for x in re.findall(r"silence_end: ([\d.]+)", log)]
+    silences = list(zip(starts, ends + [total] * (len(starts) - len(ends))))
+    regions, cursor = [], 0.0
+    for s, e in silences:
+        if s - cursor > 0.5:
+            regions.append((max(0.0, cursor - PAD_S), min(total, s + PAD_S)))
+        cursor = e
+    if total - cursor > 0.5:
+        regions.append((max(0.0, cursor - PAD_S), total))
+    return regions, sum(e - s for s, e in silences)
+
+
+def cut(wav, start, end, dst):
+    run(["ffmpeg", "-nostdin", "-y", "-loglevel", "error", "-ss", f"{start}",
+         "-to", f"{end}", "-i", wav, "-ar", "16000", "-ac", "1", dst])
+
+
+def whisper(clip, outdir, model, lang):
+    if MLX:
+        run([WHISPER, clip, "--model", model, "--language", lang,
+             "--condition-on-previous-text", "False",
+             "--output-format", "json", "--output-dir", outdir])
+    else:
+        run([WHISPER, clip, "--model", "turbo" if "/" in model else model,
+             "--language", lang, "--condition_on_previous_text", "False",
+             "--output_format", "json", "--output_dir", outdir])
+    name = os.path.splitext(os.path.basename(clip))[0]
+    return json.load(open(os.path.join(outdir, name + ".json"), encoding="utf-8"))["segments"]
+
+
+def parakeet(clip, outdir):
+    run([PARAKEET, clip, "--output-format", "json", "--output-dir", outdir])
+    name = os.path.splitext(os.path.basename(clip))[0]
+    return json.load(open(os.path.join(outdir, name + ".json"), encoding="utf-8"))["sentences"]
+
+
+def flag_bad(segs):
+    bad = [False] * len(segs)
+    norm = [re.sub(r"\W+", " ", s["text"]).strip().lower() for s in segs]
+    for i, s in enumerate(segs):
+        speechy = s.get("no_speech_prob", 0) < 0.5
+        if s.get("compression_ratio", 0) > MAX_COMPRESSION:
+            bad[i] = True
+        if speechy and s.get("avg_logprob", 0) < MIN_LOGPROB:
+            bad[i] = True
+    run_start = 0
+    for i in range(1, len(segs) + 1):
+        if i == len(segs) or norm[i] != norm[run_start]:
+            if i - run_start >= REPEAT_RUN and norm[run_start]:
+                for j in range(run_start, i):
+                    bad[j] = True
+            run_start = i
+    return bad
+
+
+def merge_spans(segs, bad):
+    spans = []
+    for s, b in zip(segs, bad):
+        if not b:
+            continue
+        if spans and s["start"] - spans[-1][1] < 2.0:
+            spans[-1][1] = s["end"]
+        else:
+            spans.append([s["start"], s["end"]])
+    return spans
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("input")
+    ap.add_argument("-o", "--outdir", default=".")
+    ap.add_argument("--model", default="mlx-community/whisper-large-v3-turbo")
+    ap.add_argument("--language", default="en")
+    ap.add_argument("--no-fallback", action="store_true")
+    a = ap.parse_args()
+    if not WHISPER:
+        sys.exit("transcribe: install mlx-whisper (Apple Silicon) or openai-whisper")
+    if not PARAKEET:
+        a.no_fallback = True
+
+    name = os.path.splitext(os.path.basename(a.input))[0]
+    os.makedirs(a.outdir, exist_ok=True)
+    tmp = tempfile.mkdtemp(prefix="transcribe-")
+    try:
+        wav = os.path.join(tmp, "full.wav")
+        run(["ffmpeg", "-nostdin", "-y", "-loglevel", "error", "-i", a.input,
+             "-ar", "16000", "-ac", "1", wav])
+        total = duration(wav)
+        regions, silent = speech_regions(wav, total)
+        print(f"{name}: {total/60:.1f} min, skipping {silent/60:.1f} min of "
+              f"silence, {len(regions)} speech region(s)", file=sys.stderr)
+
+        out, n_fixed, fixed_s = [], 0, 0.0
+        for k, (r0, r1) in enumerate(regions):
+            clip = os.path.join(tmp, f"r{k}.wav")
+            cut(wav, r0, r1, clip)
+            segs = whisper(clip, tmp, a.model, a.language)
+            bad = flag_bad(segs)
+            spans = [] if a.no_fallback else merge_spans(segs, bad)
+            keep = [dict(start=s["start"] + r0, end=s["end"] + r0,
+                         text=s["text"].strip(),
+                         model="whisper-suspect" if b else "whisper")
+                    for s, b in zip(segs, bad) if not b or a.no_fallback]
+            for j, (s0, s1) in enumerate(spans):
+                sub = os.path.join(tmp, f"r{k}f{j}.wav")
+                cut(clip, max(0.0, s0 - PAD_S), s1 + PAD_S, sub)
+                off = r0 + max(0.0, s0 - PAD_S)
+                for p in parakeet(sub, tmp):
+                    keep.append(dict(start=p["start"] + off, end=p["end"] + off,
+                                     text=p["text"].strip(), model="parakeet"))
+                n_fixed += 1
+                fixed_s += s1 - s0
+            out.extend(keep)
+
+        out.sort(key=lambda s: s["start"])
+        with open(os.path.join(a.outdir, name + ".json"), "w", encoding="utf-8") as f:
+            json.dump(dict(source=a.input, duration=total, segments=out), f, indent=1)
+        with open(os.path.join(a.outdir, name + ".txt"), "w", encoding="utf-8") as f:
+            for s in out:
+                t = int(s["start"])
+                tag = {"parakeet": " [parakeet]", "whisper-suspect": " [suspect]"}.get(s["model"], "")
+                f.write(f"{t//60}:{t%60:02d} {s['text']}{tag}\n")
+        words = sum(len(s["text"].split()) for s in out)
+        print(f"{name}: {words} words; re-transcribed {n_fixed} suspect span(s) "
+              f"({fixed_s/60:.1f} min) with Parakeet", file=sys.stderr)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+if __name__ == "__main__":
+    main()
