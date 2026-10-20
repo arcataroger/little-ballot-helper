@@ -4,7 +4,7 @@
 
 **Who it's for:** US voters of any party or ideology who want a sourced cheat sheet for their own ballot, and people who make voter guides for friends and family. **Not for:** official voter information, campaign mailers or paid persuasion.
 
-**Status:** v0.1.0, an early release, tested end to end on one county general-election ballot. **Requirements:** Claude Code (recommended) or the Claude app, and Python 3.8+ (preinstalled on macOS). Optional: media tools for forum transcripts (macOS on Apple silicon is best supported).
+**Status:** v0.1.0, an early release, public domain ([CC0](LICENSE)), tested end to end on one county general-election ballot. **Requirements:** Claude Code (recommended) or the Claude app, and Python 3.8+ (preinstalled on macOS). Optional: media tools for forum transcripts (macOS on Apple silicon is best supported).
 
 > **Personal guide, not an official ballot.** The skill never answers voting-logistics questions from memory. Confirm dates, deadlines and drop sites with your county election office.
 
@@ -293,4 +293,4 @@ Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md), an
 
 ## License
 
-Not yet chosen. Until a license is added, all rights are reserved.
+[CC0 1.0 Universal](LICENSE): public domain dedication. You can copy, modify, distribute and use this work, even commercially, without asking permission or giving credit. Credit is welcome, never required.

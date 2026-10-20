@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Dedicated to the public domain under CC0 1.0.
+
 ## v0.1.0 (2026-10-19)
 
 First release.
