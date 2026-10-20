@@ -42,8 +42,6 @@ A single HTML page (or a claude.ai Artifact) with:
 
 ### Claude Code (recommended)
 
-This repository is private for now. Until it goes public, cloning needs access to it.
-
 1. Clone this repository into your skills folder:
    ```bash
    git clone https://github.com/arcataroger/little-ballot-helper.git ~/.claude/skills/little-ballot-helper
