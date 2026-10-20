@@ -1,6 +1,10 @@
 # Ballot Guide: an AI voter guide skill for Claude
 
-**Ballot Guide is a Claude skill that builds a researched, values-based voter guide for your exact US ballot.** You tell it your politics and priorities. It researches every race and ballot measure from official sources, endorsements, candidates' own words and campaign-finance records. Then it ranks each option against *your* values, shows where trusted sources disagree, fact-checks itself, runs a blinded fairness test and builds a shareable web page with citations. It works for any state, county or city, any party or ideology, and both primaries and general elections.
+**Ballot Guide is a Claude skill that builds a researched, values-based voter guide for your exact US ballot.** Give it a photo of your sample ballot, and tell it your politics and priorities. It researches every candidate and ballot measure from official sources, endorsements, candidates' own words, forum transcripts and campaign-finance records. Then it ranks each option against *your* values, shows where trusted sources disagree, fact-checks itself, runs a blinded fairness test and builds a shareable web page with citations. It works for any state, county or city, any party or ideology, and both primaries and general elections.
+
+**Who it's for:** US voters of any party or ideology who want a sourced cheat sheet for their own ballot, and people who make voter guides for friends and family. **Not for:** official voter information, campaign mailers or paid persuasion.
+
+**Status:** v0.1.0, an early release, tested end to end on one county general-election ballot. **Requirements:** Claude Code (recommended) or the Claude app, and Python 3.8+ (preinstalled on macOS). Optional: media tools for forum transcripts (macOS on Apple silicon is best supported).
 
 > **Personal guide, not an official ballot.** The skill never answers voting-logistics questions from memory. Confirm dates, deadlines and drop sites with your county election office.
 
@@ -38,6 +42,8 @@ A single HTML page (or a claude.ai Artifact) with:
 
 ### Claude Code (recommended)
 
+This repository is private for now. Until it goes public, cloning needs access to it.
+
 1. Clone this repository into your skills folder:
    ```bash
    git clone https://github.com/arcataroger/ballot-guide-claude-skill.git ~/.claude/skills/ballot-guide
@@ -50,9 +56,9 @@ A single HTML page (or a claude.ai Artifact) with:
 Forum transcripts and PDF reading need a few local tools. The skill checks for them and asks before installing anything.
 
 1. Run `~/.claude/skills/ballot-guide/scripts/setup_macos.sh` to see what is missing.
-2. Run it again with `--install` to add ffmpeg, yt-dlp, mlx-whisper, parakeet-mlx and the PDF tools through Homebrew and pipx.
+2. Exit code 2 means some tools are missing, not that the script failed. Run it again with `--install` to add ffmpeg, yt-dlp, mlx-whisper, parakeet-mlx and the PDF tools through Homebrew and pipx.
 
-On Windows or Linux, install ffmpeg, yt-dlp, poppler and a Whisper build (faster-whisper or whisper.cpp). The skill adapts its steps to what it finds.
+On Windows or Linux, install ffmpeg, yt-dlp, poppler and openai-whisper (`pipx install openai-whisper`); `scripts/transcribe` detects it automatically. faster-whisper and whisper.cpp also work if you transcribe by hand. The skill adapts its steps to what it finds.
 
 ### Optional API keys
 
@@ -155,7 +161,7 @@ Separate subagents run each check, so the reviewer never grades its own work:
 
 1. **Lateral fact-check.** The skill tags every unverified claim and every negative claim about a candidate in the ledgers. A fact-checker traces each one to the original document or recording. Unconfirmed claims get removed, fixed, or labeled "unconfirmed," and never decide a pick.
 2. **Quote check.** Every transcript quote gets compared with the audio at its timestamp. Checking a caption quote against the same captions proves nothing, so the guide says when audio was out of reach.
-3. **Blinded swap test.** `swap.py` swaps each pick with the runner-up (names, and party labels in partisan races) and strips URLs and IDs that leak identity. A fresh reviewer who never sees your values compares the evidence bar, the tone and the density of negative claims for each candidate. In testing, this caught real imbalances in every draft, including the original hand-built guide.
+3. **Blinded swap test.** `swap.py` swaps each pick with the runner-up (names, and party labels in partisan races) and strips URLs and IDs that leak identity. A fresh reviewer who never sees your values compares the evidence bar, the tone and the density of negative claims for each candidate. In the author's trial runs, it caught real imbalances in both drafts it saw, including a hand-built guide (see [Limits](#limits)).
 4. **Fresh-eyes review.** A second fresh agent sees only the draft and looks for missing sources, unfair wording and gaps.
 5. **Staleness check.** Within 48 hours before sharing, the skill rechecks withdrawals, new endorsements, pulled sources and late filings.
 
@@ -168,7 +174,7 @@ The template is a full, dependency-free HTML page:
 - It handles dark mode and has a print layout for the voting booth.
 - Every pill shows its stance with a + or − symbol and screen-reader text, not just color.
 
-Two scripts finish the page. `linkify.py` points each source name to its exact endorsement page. `check_links.py` confirms that links load and shows campaign-site titles, so you can verify each site belongs to this year's candidate. The skill strips personal data, and you choose the author line.
+Two scripts finish the page. `linkify.py` points each source name to its exact endorsement page. `check_links.py` confirms that links load and shows campaign-site titles, so you can verify each site belongs to this year's candidate. Add `--campaign-only` for a fast check of candidate sites alone. The skill strips personal data, and you choose the author line.
 
 ### Phase 8: Refresh
 
@@ -182,19 +188,19 @@ We designed this skill after surveying voting-advice apps, research on LLMs in e
 
 | Finding | Source | What the skill does |
 |---|---|---|
-| Chatbots got about half of election questions wrong and invented polling places | AI Democracy Projects / Proof News, 2024 | Official data only for ballot and logistics |
-| ChatGPT gave incomplete governor candidate lists 89% of the time | States United, 2026 | Candidate lists come from official filings |
-| Chat models lean left | Rozado, *PLOS ONE* 2024; Motoki et al., *Public Choice* 2024 | Blinded swap test for every user, of any camp |
-| LLMs tell users what they want to hear | Perez et al. 2022; Sharma et al., ICLR 2024 | The reviewer never sees the user's values |
-| The choice of issues shifts voting-advice results | Lefevere & Walgrave, *Electoral Studies* 2014 | The wizard adds issues from outside the user's camp |
-| The matching model changes most users' advice | Louwerse & Rosema, *Acta Politica* 2014 | A sensitivity check across weightings |
-| Proximity matching ignores competence and integrity | Wagner & Ruusuvirta, *Acta Politica* 2012 | Optional non-policy criteria |
-| LLM voting-advice tools misstated party positions in 25–50% of cases | Dormuth et al. 2025 | Every position needs a citation |
-| The most persuasive AI setups made the most false claims | Hackenburg et al., *Science* 2025; Lin et al., *Nature* 2025 | Finding-first prose; few claims; no argument stacking |
-| Floods of opposing content backfire, but short, respectful counterpoints work | Bail et al., *PNAS* 2018; Costello et al., *Science* 2024 | One "other side's best case" line per race |
-| Endorsement shortcuts mislead low-information voters as races multiply | Lau & Redlawsk, *AJPS* 2001 | Down-ballot gaps get stated plainly |
-| Fact-checkers judge a source by reading what others say about it | Wineburg & McGrew; Caulfield (SIFT) | Lateral fact-checking against originals |
-| Equal questions and labeled non-responses for every candidate | League of Women Voters guide standards | Symmetric evidence ledger |
+| Chatbots got about half of election questions wrong and invented polling places | [AI Democracy Projects / Proof News, 2024](https://www.pbs.org/newshour/politics/chatbot-info-on-u-s-elections-is-inaccurate-misleading-and-could-keep-voters-from-polls-report-finds) | Official data only for ballot and logistics |
+| ChatGPT gave incomplete governor candidate lists 89% of the time | [States United, 2026](https://statesunited.org/?p=10692) | Candidate lists come from official filings |
+| Chat models lean left | [Rozado, *PLOS ONE* 2024](https://pmc.ncbi.nlm.nih.gov/articles/PMC11290627); [Motoki et al., *Public Choice* 2024](https://ueaeprints.uea.ac.uk/id/eprint/92722) | Blinded swap test for every user, of any camp |
+| LLMs tell users what they want to hear | [Perez et al. 2022](https://arxiv.org/abs/2212.09251); Sharma et al., ICLR 2024 | The reviewer never sees the user's values |
+| The choice of issues shifts voting-advice results | [Lefevere & Walgrave, *Electoral Studies* 2014](https://researchportal.vub.be/en/publications/a-perfect-match-the-impact-of-statement-selection-on-voting-advic/) | The wizard adds issues from outside the user's camp |
+| The matching model changes most users' advice | [Louwerse & Rosema, *Acta Politica* 2014](https://tomlouwerse.nl/publication/2014-louwerse-rosema-actapolitica) | A sensitivity check across weightings |
+| Proximity matching ignores competence and integrity | [Wagner & Ruusuvirta, *Acta Politica* 2012](https://researchonline.lse.ac.uk/id/eprint/46760) | Optional non-policy criteria |
+| LLM voting-advice tools misstated party positions in 25–50% of cases | [Dormuth et al. 2025](https://arxiv.org/abs/2502.15568) | Every position needs a citation |
+| The most persuasive AI setups made the most false claims | [Hackenburg et al., *Science* 2025](https://www.ox.ac.uk/news/2025-12-11-study-reveals-how-conversational-ai-can-exert-influence-over-political-beliefs); [Lin et al., *Nature* 2025](https://doi.org/10.1038/s41586-025-09771-9) | Finding-first prose; few claims; no argument stacking |
+| Floods of opposing content backfire, but short, respectful counterpoints work | [Bail et al., *PNAS* 2018](https://doi.org/10.1073/pnas.1804840115); [Costello et al., *Science* 2024](https://ide.mit.edu/insights/debunker-chatbot-makes-a-splash-spurs-debate) | One "other side's best case" line per race |
+| Endorsement shortcuts mislead low-information voters as races multiply | [Lau & Redlawsk, *AJPS* 2001](https://doi.org/10.2307/2669334) | Down-ballot gaps get stated plainly |
+| Fact-checkers judge a source by reading what others say about it | Wineburg & McGrew; [Caulfield (SIFT)](https://pressbooks.pub/webliteracy/?p=24) | Lateral fact-checking against originals |
+| Equal questions and labeled non-responses for every candidate | [League of Women Voters guide standards](https://www.lwv.org/sites/default/files/2024-09/Guidelines%20for%20State%20And%20Local%20League%20Debates%20including%20Empty%20Chair%20Debates%20%282024%29.pdf) | Symmetric evidence ledger |
 | Repeating a false allegation can still be defamation | The republication rule | Attribution, the candidate's response, no allegations stated as fact |
 | Some states regulate imitation sample ballots | e.g. Oregon, West Virginia statutes | "Not an official ballot" banner |
 
@@ -243,6 +249,12 @@ ballot-guide/
 
 ## FAQ
 
+**Is it free?**
+The skill is free. Running it uses your Claude plan's usage (or API credits), and a deep run on a full ballot uses a lot. Optional paid transcription costs cents per audio hour.
+
+**Does it see my address?**
+Only if you give one, and only to find your ballot. The skill never stores or publishes it, and it asks you to delete ballot photos once it has the contest list.
+
 **Is this an AI that tells me how to vote?**
 No. You supply the values, and the skill applies them transparently. Where reasonable people who share your values disagree, it shows you the options instead of choosing. You approve every pick before anything gets shared.
 
@@ -277,14 +289,8 @@ A deep run on a full county ballot uses a lot of model time. On a Claude subscri
 
 ## Contributing
 
-Issues and pull requests are welcome. Good contributions include:
+Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md), and use the issue templates to report a wrong fact or a bug.
 
-- Helpers for state campaign-finance portals
-- Scripts for Windows and Linux
-- Translations
-- Test ballots from other states
-- Reports of anything the skill got wrong
+## License
 
----
-
-*Keywords: AI voter guide, ballot guide, Claude skill, Claude Code skill, values-based voting, sample ballot research, candidate comparison, ballot measure explainer, election research, voting advice application, campaign finance, endorsements, fact-checking, US elections.*
+Not yet chosen. Until a license is added, all rights are reserved.

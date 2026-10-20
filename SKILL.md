@@ -24,6 +24,7 @@ Create one working folder per guide, named `ballot-guide-<county>-<election date
 | `ledger/<race>.md` | Phase 4 | One evidence ledger per race |
 | `transcripts/` | Phase 4 | Forum transcripts |
 | `scores.json` | Phase 5 | Input for `sensitivity.py` |
+| `pairs.json` | Phase 6 | Pick and runner-up per contested race, for `swap.py` |
 | `guide.html` | Phase 7 | The page |
 
 Ballot photos carry the voter's name, address and barcodes. Delete them, or ask the user to, once `ballot.md` exists.
@@ -136,8 +137,8 @@ Run each check as a separate subagent, so the reviewer is not the writer.
 
 1. **Fact-check.** Collect every `[unverified]` and `[neg]` claim from the ledgers and the draft. Have a subagent check each one laterally against the original document or recording. Remove or fix what it cannot confirm. Label single-source claims "unconfirmed," and never let them decide a pick.
 2. **Quote check.** Compare every transcript quote with the audio at its timestamp. Treat `[suspect]` lines as unverified. Checking a caption quote against the same captions proves nothing, so say "checked against captions only" where audio is out of reach. If YouTube blocks downloads, ask the user before using browser cookies (`yt-dlp --cookies-from-browser`).
-3. **Swap test.** Run `scripts/swap.py` to swap the picked candidate and the runner-up in each contested card (names, and party labels in partisan races). Give the output to a fresh reviewer, and withhold `values.md`. Ask whether each candidate gets the same evidence bar, the same tone and the same density of negative claims. Fix every imbalance it reports.
-4. **Fresh-eyes review.** Give another fresh subagent only the draft. Ask it for missing sources, unfair wording and gaps, with the user's values held fixed. If the user has another vendor's model set up, offer it as a second reviewer.
+3. **Swap test.** Write `pairs.json` (format: `scripts/swap.py --help`). Run `scripts/swap.py` to swap the picked candidate and the runner-up in each contested card (names, and party labels in partisan races). Give the output to a fresh reviewer, and withhold `values.md`. Ask whether each candidate gets the same evidence bar, the same tone and the same density of negative claims. Fix every imbalance it reports. Without subagents, run the review yourself in a fresh pass, and label it a self-review in the methodology.
+4. **Fresh-eyes review** (Deep level). Give another fresh subagent only the draft. Ask it for missing sources, unfair wording and gaps, with the user's values held fixed. If the user has another vendor's model set up, offer it as a second reviewer.
 5. **Staleness check.** Within 48 hours before sharing, recheck withdrawals, new endorsements, pulled sources and late filings.
 
 ### Phase 7: Build the page

@@ -43,8 +43,8 @@ Use the first step that works, and record which step each forum reached.
 2. Captions: `scripts/captions.py`, through `forum_transcripts.sh`.
 3. Local transcription:
    - Apple silicon: mlx-whisper (`scripts/transcribe`), about 1.5–2 seconds per audio minute.
-   - NVIDIA GPU: faster-whisper.
-   - CPU only: whisper.cpp or faster-whisper with a small model. Estimate the time first (roughly real time or slower), and ask before starting a long batch.
+   - Other systems: openai-whisper, which `scripts/transcribe` detects automatically (it uses a GPU when PyTorch sees one). faster-whisper or whisper.cpp are faster alternatives, run by hand.
+   - CPU only: use a small model. Estimate the time first (roughly real time or slower), and ask before starting a long batch.
 4. A paid speech-to-text API with the user's own key. Do this only with consent and a cost estimate (typically cents per audio hour).
 5. Skip. Use news coverage of the forum, and list "forum not transcribed" in the known limits.
 

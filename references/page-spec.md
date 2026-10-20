@@ -59,7 +59,7 @@ Edit the `guide-config` JSON at the bottom:
 ## Publishing
 
 1. Load the `artifact-design` skill if you publish as a claude.ai Artifact. Otherwise save the HTML file.
-2. Run `scripts/linkify.py page.html links.json` and `scripts/check_links.py page.html`.
+2. Run `scripts/linkify.py guide.html links.json` and `scripts/check_links.py guide.html`.
 3. Search the page for the user's name, email, street address and voter ID. Remove any you find.
 4. Check the page at phone width (375 px) and in print preview.
 5. Show the user the picks. Publish only after they approve.

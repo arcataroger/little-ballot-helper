@@ -7,7 +7,7 @@
 # "m:ss text" lines and prints one status line per video.
 # Works with any site yt-dlp supports (YouTube, Vimeo, Facebook, many local TV sites).
 set -uo pipefail
-usage() { sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'; exit 2; }
+usage() { sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'; exit 2; }
 caps=1; [ "${1:-}" = --no-captions ] && { caps=0; shift; }
 [ $# -ge 2 ] || usage
 case $1 in -*) usage ;; esac
@@ -20,7 +20,7 @@ for url in "$@"; do
   id=$(yt-dlp --get-id "$url" 2>/dev/null | head -1)
   [ -n "$id" ] || { echo "FAIL  $url  (yt-dlp cannot read it)"; continue; }
   if [ -s "$out/$id.txt" ]; then echo "SKIP  $id  (already done)"; continue; fi
-  if [ $caps = 1 ] && python3 "$HERE/captions.py" "$url" -o "$out" 2>>"$out/log.txt"; then
+  if [ $caps = 1 ] && python3 "$HERE/captions.py" "$url" --id "$id" -o "$out" 2>>"$out/log.txt"; then
     echo "CAPS  $id  $(wc -l < "$out/$id.txt") lines"; continue
   fi
   # Captions failed: fall back to audio. Retry on rate limits with growing waits.

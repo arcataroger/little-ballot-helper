@@ -46,7 +46,7 @@ Where to look, by type:
 | Party | County and state party endorsement lists, for both major parties and minor ones |
 | Issue groups | Reproductive-rights and anti-abortion groups, LGBTQ+ groups, environmental groups (LCV state affiliates, Sierra Club chapters), gun groups on both sides, taxpayer groups, business PACs, realtors and builders, police and fire unions |
 | Labor | State AFL-CIO or labor federation, teachers' unions, SEIU, building trades |
-| Ideological | DSA chapters, Working Families, Indivisible, Our Revolution, Justice Democrats on the left. Club for Growth, Americans for Prosperity, FreedomWorks, Heritage Action, state Family Policy councils, SBA Pro-Life America, NRA and Gun Owners of America, state Chamber of Commerce PACs, and county Republican parties on the right. The Libertarian Party, Young Americans for Liberty and state Libertarian caucuses for libertarians. Centrist groups such as No Labels and local "balance" PACs |
+| Ideological | DSA chapters, Working Families, Indivisible, Our Revolution, Justice Democrats on the left. Club for Growth, Americans for Prosperity, FreedomWorks, Heritage Action, state Family Policy councils, SBA Pro-Life America, NRA and Gun Owners of America, and state Chamber of Commerce PACs on the right. The Libertarian Party, Young Americans for Liberty and state Libertarian caucuses for libertarians. Centrist groups such as No Labels and local "balance" PACs |
 | Media | Editorial boards, alt-weeklies, statewide outlets. Note each one's owner |
 | Individuals | Local bloggers and voter-guide authors; weight them low unless the user trusts them |
 
@@ -78,7 +78,7 @@ Run the same steps for every candidate in a race, so the evidence ledger stays s
 
 ## 5. Transcripts
 
-The scripts below target macOS on Apple silicon. On other systems, find equivalents yourself (ffmpeg, yt-dlp, and a Whisper build such as faster-whisper or whisper.cpp), and follow the transcription ladder in `environment.md`. Start with candidates' written questionnaire answers: they cost nothing and often beat forum quotes.
+The scripts below target macOS on Apple silicon. On other systems, find equivalents yourself (ffmpeg, yt-dlp, and openai-whisper, which `scripts/transcribe` detects; faster-whisper or whisper.cpp work by hand), and follow the transcription ladder in `environment.md`. Start with candidates' written questionnaire answers: they cost nothing and often beat forum quotes.
 
 1. Run `scripts/setup_macos.sh` to see which tools exist. If any are missing, ask the user, then run `scripts/setup_macos.sh --install`.
 2. Find forums on YouTube, local TV sites, League chapters, public-access channels and podcasts. Search with `yt-dlp --flat-playlist --print "%(id)s %(title)s" "ytsearch20:<city> <office> forum <year>"`. List a channel with `.../channel/<id>/videos`; @handle URLs sometimes 404.

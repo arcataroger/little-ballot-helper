@@ -16,12 +16,15 @@ API = "https://api.open.fec.gov/v1"
 
 
 KEY = os.environ.get("FEC_API_KEY")
-if not KEY:
-    print("fec: FEC_API_KEY not set; DEMO_KEY allows only a few calls per hour, shared by all agents. "
-          "Get a free key at https://api.data.gov/signup", file=sys.stderr)
+_warned = False
 
 
 def get(path, **params):
+    global _warned
+    if not KEY and not _warned:
+        print("fec: FEC_API_KEY not set; DEMO_KEY allows only a few calls per hour, shared by all agents. "
+              "Get a free key at https://api.data.gov/signup", file=sys.stderr)
+        _warned = True
     params["api_key"] = KEY or "DEMO_KEY"
     url = f"{API}{path}?{urllib.parse.urlencode({k: v for k, v in params.items() if v is not None})}"
     for wait in (0, 15, 60):

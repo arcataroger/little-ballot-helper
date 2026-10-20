@@ -35,6 +35,8 @@ def total(scores, weights, drop_weak=False):
 
 
 def top(cands, weights, drop_weak=False):
+    if not cands:
+        return "no candidates"
     ranked = sorted(cands, key=lambda c: total(cands[c], weights, drop_weak), reverse=True)
     if len(ranked) > 1 and total(cands[ranked[0]], weights, drop_weak) == total(cands[ranked[1]], weights, drop_weak):
         return "tie:" + "/".join(ranked[:2])
@@ -47,6 +49,9 @@ def main(path, as_json):
     equal = {k: 1 for k in W}
     report = {}
     for race, cands in d["races"].items():
+        if len(cands) < 2:
+            report[race] = {"top": top(cands, W), "flips": {}, "missing": {}, "totals": {}, "note": "unopposed" if cands else "no filer"}
+            continue
         base = top(cands, W)
         variants = {"equal weights": top(cands, equal), "without weak evidence": top(cands, W, True)}
         for k in W:
@@ -65,6 +70,9 @@ def main(path, as_json):
         print(json.dumps(report, indent=1))
         return
     for race, r in report.items():
+        if r.get("note"):
+            print(f"{race}: {r['top']}  [{r['note']}]")
+            continue
         mark = "TIE" if r["top"].startswith("tie:") else ("FLIPS" if r["flips"] else "stable")
         print(f"{race}: top = {r['top']}  [{mark}]  totals = {r['totals']}")
         for name, t in r["flips"].items():

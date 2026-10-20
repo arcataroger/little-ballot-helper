@@ -38,7 +38,7 @@ For a primary, also ask which party's ballot the user will vote (or whether it's
 
 Build the issue options from the user's camp. Include issues from several dimensions, not only the camp's signature ones: the research shows that issue selection shifts the advice. Offer issues as multiSelect, in two questions if needed.
 
-Issue menu: choose about eight that fit the camp, and include at least two from outside its signature list. Use plain descriptive terms. Where camps name an issue differently, show the label the user's camp uses: "abortion access" or "protecting unborn life," "border security" or "immigrant rights."
+Issue menu: choose about eight that fit the camp, and include at least two from outside its signature list. In the wizard's menu only, where camps name an issue differently, show the label the user's camp uses, so they recognize it: "abortion access" or "protecting unborn life," "border security" or "immigrant rights."
 
 - Abortion and reproductive health
 - LGBTQ+ rights
@@ -97,4 +97,4 @@ Read it back in three or four plain sentences and ask: "Is this right?" Fix it b
 
 ## Terminology
 
-Default to plain descriptive terms that say what a policy does: "bans abortion after six weeks," "lets police share plate-reader data with federal agents." Avoid either camp's branding ("pro-life," "pro-choice," "death tax," "gun safety") except inside quotes and group names. If the user asks for their camp's vocabulary, use it, and note the choice in the methodology.
+The camp labels above apply to the wizard menu only. In the guide itself, default to plain descriptive terms that say what a policy does: "bans abortion after six weeks," "lets police share plate-reader data with federal agents." Avoid either camp's branding ("pro-life," "pro-choice," "death tax," "gun safety") except inside quotes and group names. If the user asks for their camp's vocabulary, use it, and note the choice in the methodology.

@@ -11,7 +11,7 @@ Steps:
   4. Write <video id>.txt. On failure, exit 2 so the caller falls back to
      downloading audio and running scripts/transcribe.
 
-Usage: captions.py URL [URL...] [-o OUTDIR] [--lang en] [--retries 4]
+Usage: captions.py URL [URL...] [-o OUTDIR] [--lang en] [--retries 2] [--id VIDEO_ID]
 """
 import argparse, glob, os, re, subprocess, sys, time
 
@@ -66,6 +66,7 @@ def main():
     ap.add_argument("urls", nargs="+")
     ap.add_argument("-o", "--outdir", default=".")
     ap.add_argument("--lang", default="en")
+    ap.add_argument("--id", help="video id for a single non-YouTube URL (forum_transcripts.sh passes it)")
     ap.add_argument("--retries", type=int, default=2,
                     help="retries on HTTP 429 (waits 20 s, 40 s, ...)")
     a = ap.parse_args()
@@ -73,7 +74,10 @@ def main():
     failed = 0
     for url in a.urls:
         vid = re.search(r"(?:v=|youtu\.be/|shorts/)([\w-]{11})", url)
-        vid = vid.group(1) if vid else url
+        vid = a.id if (a.id and len(a.urls) == 1) else (vid.group(1) if vid else None)
+        if not vid:
+            got = subprocess.run(["yt-dlp", "--get-id", url], capture_output=True, text=True).stdout.split()
+            vid = got[0] if got else re.sub(r"\W+", "_", url)[-40:]
         fetch(url, a.outdir, a.lang, a.retries)
         vtts = sorted(glob.glob(os.path.join(a.outdir, f"{vid}*.vtt")),
                       key=lambda f: ("orig" in f, len(f)))  # prefer manual subs

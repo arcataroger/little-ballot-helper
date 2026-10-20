@@ -27,7 +27,8 @@ def swap_terms(t, pairs):
     toks = {}
     for i, (x, y) in enumerate(pairs):
         for src, dst, key in ((x, y, f"\x00A{i}\x00"), (y, x, f"\x00B{i}\x00")):
-            t = t.replace(src, key)
+            # Whole words only: "Smith" must not touch "Smithsonian".
+            t = re.sub(r"(?<!\w)%s(?!\w)" % re.escape(src), key, t)
             toks[key] = dst
     for key, dst in toks.items():
         t = t.replace(key, dst)
